@@ -1,133 +1,68 @@
-import {Component} from 'react';
-import css from './App.module.css'
-// import  App  from 'components/App';
+import { useEffect, useState } from "react";
+import css from "./App.module.css";
+import { nanoid } from "nanoid";
+import ContactForm from "components/ContactForm/ContactForm";
+import ContactList from "./ContactList/ContactList";
+import Filter from "components/Filter/Filter";
+import contactslist from "components/contactslist.json";
 
-  import { nanoid } from 'nanoid';
-import ContactForm from 'components/ContactForm/ContactForm';
-//  import contacts from './contacts.json';
-import ContactList from './ContactList/ContactList'
- import Filter from 'components/Filter/Filter';
+// import { useLocalStorage } from "hooks/useLocalStorage";
 
- import initialContacts from './contacts.json';      
-         
-      
-        
-class App extends Component {
+const App = () => {
+  // const [contacts, setContacts] = useLocalStorage("contacts", []);
+  // ========================================
+  //  второй вариант локалстореджа без использования hooks
+  const valueLocalStorage = JSON.parse(localStorage.getItem("contacts"));
 
-  state = {
-    contacts: initialContacts,
-  //  contacts: initialContacts,
-    filter: '',
-    name: '',
-    number: ''
-  };
- 
-  
-    createContacts = (dataForm) => {
-		const isAlreadyExist = this.state.contacts.find(
-			(el) => el.name === dataForm.name
-		)
-		if (isAlreadyExist) return alert('Already Exist')
+  const [contacts, setContacts] = useState(
+    valueLocalStorage ? valueLocalStorage : contactslist
+    // valueLocalStorage.length > 0 ? valueLocalStorage : contactslist
+  );
 
-		const newContact = {
-			...dataForm,
-			id: nanoid(),
-		}
-		this.setState((prev) => ({
-			contacts: [newContact, ...prev.contacts],
-		}))
-	}
- 
+  const [filter, setFilter] = useState("");
 
+  useEffect(() => {
+    localStorage.setItem("contacts", JSON.stringify(contacts));
+  }, [contacts]);
+  // ============================================================
+  const createContacts = (dataForm) => {
+    const isAlreadyExist = contacts.find((el) => el.name === dataForm.name);
+    if (isAlreadyExist) return alert("Already Exist");
 
-
-
-  
-   handleFilter = ({ target: { value } }) => {
-    this.setState({
-      filter: value,
-    });
+    const newContact = {
+      ...dataForm,
+      id: nanoid(),
+    };
+    setContacts((prev) => [newContact, ...prev]);
   };
 
-  deleteContacts = (id) => {
-         	this.setState((prev) => ({
-        		contacts: prev.contacts.filter(el => el.id !== id),
-        	}))
-         }
+  const handleFilter = ({ target: { value } }) => {
+    setFilter(value);
+  };
 
-  render() {
-    console.log(this.state.contacts);
-    const { contacts, filter } = this.state;
+  const deleteContacts = (id) => {
+    setContacts((prev) => prev.filter((el) => el.id !== id));
+  };
 
- const filteredContacts = contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter.toLowerCase())
-    );
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(filter.toLowerCase().trim())
+  );
 
-    return (
+  return (
+    <div className="container">
+      <h1 className={css.h1}>Phonebook</h1>
+      <ContactForm createContacts={createContacts} />
 
-      <div className='container'>
-  <h1 className={css.h1}>Phonebook</h1>
-        <ContactForm createContacts={this.createContacts}/> 
-       
+      <h2 className={css.h2}>Contacts</h2>
+      <Filter handleFilter={handleFilter} />
 
-  <h2 className={css.h2}>Contacts</h2>
-          <Filter handleFilter ={this.handleFilter} />     
-        
-        <ContactList contacts={this.state.contacts}
-         deleteContacts={this.deleteContacts}
-            filteredContacts={filteredContacts}
-        />
-
-  
-</div>
-
-
-    )
-  }
+      <ContactList
+        contacts={contacts}
+        deleteContacts={deleteContacts}
+        filteredContacts={filteredContacts}
+      />
+    </div>
+  );
 };
-  
+
 export default App;
-
-    
-  
- 
-  
-
- 
-
-
-    
-    
-    
-  
-
-
-  //  <form onSubmit={this.handleSubmit}>
-  //         <label>
-  //           Name
-  //           <input
-  //             type="text"
-  //             name="name"
-  //             pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-  //             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-  //             required
-  //              value={this.state.name}
-  //             onChange={this.handleInputChange}
-  //           />
-  //         </label>
-  //         <label>
-  //           Number
-  //           <input
-  //             type="tel"
-  //             name="number"
-  //             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-  //             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-  //             required
-  //              value={this.state.number}
-  //             onChange={this.handleInputChange}
-  //           />
-  //         </label>
-  //         <button type="button" onClick={this.handleAddContact}>
-  //           Add contact
-  //         </button>
-  //       </form>
